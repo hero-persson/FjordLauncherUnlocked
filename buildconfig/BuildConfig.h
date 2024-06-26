@@ -149,11 +149,6 @@ class Config {
     QString FLAME_API_KEY;
 
     /**
-     * URL to fetch the Client API key for CurseForge from
-     */
-    QString FLAME_API_KEY_API_URL;
-
-    /**
      * Metadata repository URL prefix
      */
     QString META_URL;
@@ -167,15 +162,14 @@ class Config {
     QString DISCORD_URL;
     QString SUBREDDIT_URL;
 
-    QString RESOURCE_BASE = "https://resources.download.minecraft.net/";
-    QString LIBRARY_BASE = "https://libraries.minecraft.net/";
-
     // Minecraft expects these without trailing slashes, best to keep that format everywhere
     QString MOJANG_AUTH_BASE = "https://authserver.mojang.com";
     QString MOJANG_ACCOUNT_BASE = "https://api.mojang.com";
     QString MOJANG_SESSION_BASE = "https://sessionserver.mojang.com";
     QString MOJANG_SERVICES_BASE = "https://api.minecraftservices.com";
 
+    QString RESOURCE_BASE = "https://resources.download.minecraft.net/";
+    QString LIBRARY_BASE = "https://libraries.minecraft.net/";
     QString IMGUR_BASE_URL = "https://api.imgur.com/3/";
     QString FMLLIBS_BASE_URL = "https://files.prismlauncher.org/fmllibs/";  // FIXME: move into CMakeLists
     QString TRANSLATIONS_BASE_URL = "https://i18n.prismlauncher.org/";      // FIXME: move into CMakeLists
