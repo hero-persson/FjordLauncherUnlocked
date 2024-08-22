@@ -38,12 +38,9 @@
 #include <java/JavaVersion.h>
 #include <QDir>
 #include <QProcess>
-#include <unordered_set>
 #include "BaseInstance.h"
 #include "minecraft/launch/MinecraftServerTarget.h"
 #include "minecraft/mod/Mod.h"
-
-const std::unordered_set<std::string> MANAGED_AGENTS = { "moe.yushi:authlibinjector" };
 
 class ModFolderModel;
 class ResourceFolderModel;
@@ -59,7 +56,7 @@ class MinecraftInstance : public BaseInstance {
     Q_OBJECT
    public:
     MinecraftInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings, const QString& rootDir);
-    virtual ~MinecraftInstance(){};
+    virtual ~MinecraftInstance() {};
     virtual void saveNow() override;
 
     void loadSpecificSettings() override;
