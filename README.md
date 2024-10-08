@@ -55,6 +55,15 @@ flatpak remote-add --user --if-not-exists hero-persson https://hero-persson.gith
 flatpak install org.unmojang.FjordLauncher
 ```
 
+### Arch Linux
+
+Fjord Launcher Unlocked is [available](https://aur.archlinux.org/packages?O=0&K=fjordlauncherunlocked) from the AUR:
+
+```Shell
+paru -S fjordlauncherunlocked
+paru -S fjordlauncherunlocked-git # build latest Git commit from source
+```
+
 ### Nix
 
 This repository contains a Nix flake:
