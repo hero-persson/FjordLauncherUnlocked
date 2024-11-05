@@ -23,10 +23,10 @@ on:
 
 jobs:
   build_debug:
-    name: Build Debug
+    name: Build Release
     uses: ./.github/workflows/build.yml
     with:
-      build_type: Debug
+      build_type: Release
       is_qt_cached: true
     secrets:
       SPARKLE_ED25519_KEY: ${{ secrets.SPARKLE_ED25519_KEY }}
