@@ -16,9 +16,9 @@ BEGIN
                 BLOCK "000004b0"
                 BEGIN
                         VALUE "CompanyName", "MultiMC & Prism Launcher & Fjord Launcher Contributors"
-                        VALUE "FileDescription", "Fjord Launcher"
+                        VALUE "FileDescription", "Electry Launcher"
                         VALUE "FileVersion", "@Launcher_VERSION_NAME4@"
-                        VALUE "ProductName", "Fjord Launcher"
+                        VALUE "ProductName", "Electry Launcher"
                         VALUE "ProductVersion", "@Launcher_VERSION_NAME4@"
                 END
         END
