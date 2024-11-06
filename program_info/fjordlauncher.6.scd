@@ -86,3 +86,5 @@ PollyMC Contributors
 Prism Launcher Contributors
 
 Fjord Launcher Contributors
+
+Electry Launcher Contribuidores
