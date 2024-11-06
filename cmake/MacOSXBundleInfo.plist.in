@@ -55,7 +55,7 @@
                 <string>mrpack</string>
             </array>
             <key>CFBundleTypeName</key>
-            <string>Fjord Launcher instance</string>
+            <string>Electry Launcher instance</string>
             <key>CFBundleTypeOSTypes</key>
             <array>
                 <string>TEXT</string>
@@ -81,10 +81,10 @@
         </dict>
         <dict>
             <key>CFBundleURLName</key>
-            <string>FjordLauncher</string>
+            <string>ElectryLauncher</string>
             <key>CFBundleURLSchemes</key>
             <array>
-            <string>fjordlauncher</string>
+            <string>Electrylauncher</string>
             </array>
         </dict>
     </array>
