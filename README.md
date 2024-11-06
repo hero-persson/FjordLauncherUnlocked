@@ -1,6 +1,6 @@
-# <img src="./program_info/org.unmojang.FjordLauncher.svg" alt="Fjord Launcher logo" width="96"/> Fjord Launcher Unlocked
+# <img src="./program_info/org.unmojang.FjordLauncher.svg" alt="Electry Launcher logo" width="96"/> Electry Launcher
 
-Fjord Launcher Unlocked is a **fork** of Fjord Launcher, which is a fork of Prism Launcher. It is **not** endorsed by nor affiliated with Fjord Launcher or Prism Launcher.
+ElectryLauncher is a **fork** of Fjord Launcher, which is a fork of Prism Launcher. It is **not** endorsed by nor affiliated with Fjord Launcher or Prism Launcher.
 
 ## Advantages of this fork over Prism Launcher
 
