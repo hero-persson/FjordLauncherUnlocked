@@ -36,6 +36,9 @@
 
 ThemeManager::ThemeManager()
 {
+    QIcon::setFallbackThemeName(QIcon::themeName());
+    QIcon::setThemeSearchPaths(QIcon::themeSearchPaths() << m_iconThemeFolder.path());
+
     themeDebugLog() << "Determining System Widget Theme...";
     const auto& style = QApplication::style();
     m_defaultStyle = style->objectName();
@@ -92,10 +95,6 @@ void ThemeManager::initializeIcons()
     // TODO: icon themes and instance icons do not mesh well together. Rearrange and fix discrepancies!
     // set icon theme search path!
     themeDebugLog() << "<> Initializing Icon Themes";
-
-    auto searchPaths = QIcon::themeSearchPaths();
-    searchPaths.append(m_iconThemeFolder.path());
-    QIcon::setThemeSearchPaths(searchPaths);
 
     for (const QString& id : builtinIcons) {
         IconTheme theme(id, QString(":/icons/%1").arg(id));
@@ -298,7 +297,8 @@ void ThemeManager::initializeCatPacks()
                                                     { "rory", QObject::tr("Rory ID 11 (drawn by Ashtaka)") },
                                                     { "rory-flat", QObject::tr("Rory ID 11 (flat edition, drawn by Ashtaka)") },
                                                     { "teawie", QObject::tr("Teawie (drawn by SympathyTea)") },
-                                                    { "polly", QObject::tr("Polly the Parrot (drawn by anoraktrend)") } };
+                                                    { "polly", QObject::tr("Polly the Parrot (drawn by anoraktrend)") },
+                                                    { "spaceship-phoebe", QObject::tr("Spaceship and Phoebe (drawn by Evan)") } };
     for (auto [id, name] : defaultCats) {
         addCatPack(std::unique_ptr<CatPack>(new BasicCatPack(id, name)));
     }
