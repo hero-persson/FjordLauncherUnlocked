@@ -4,13 +4,11 @@ Fjord Launcher Unlocked is a **fork** of Fjord Launcher, which is a fork of Pris
 
 ## Advantages of this fork over Prism Launcher
 
+- No DRM
+
 - [Support for alternative auth servers](doc/alternative-auth-servers.md)
 
 - Ability to download FTB modpacks from within the launcher
-
-## Having a problem with the launcher?
-
-**Do not** open an issue in the Prism Launcher repo, and **do not** ask about Fjord Launcher in the Prism Launcher Discord server. Instead, ask in #fjord-launcher in their [Matrix space](https://matrix.to/#/#unmojang:matrix.org), or open an issue [here](https://github.com/unmojang/FjordLauncher/issues).
 
 ## Installation
 
@@ -63,12 +61,7 @@ AppImages are available in the [releases section](https://github.com/hero-persso
 
 ## Building
 
-To build the launcher yourself, follow the instructions on the Prism Launcher website, but clone this repo instead:
-
-- [Windows](https://prismlauncher.org/wiki/development/build-instructions/windows/)
-- [Linux](https://prismlauncher.org/wiki/development/build-instructions/linux/)
-- [MacOS](https://prismlauncher.org/wiki/development/build-instructions/macos/)
-- [OpenBSD](https://prismlauncher.org/wiki/development/build-instructions/openbsd/)
+To build the launcher yourself, follow the [instructions on the Prism Launcher website](https://prismlauncher.org/wiki/development/build-instructions), but clone this repo instead.
 
 ## Notes
 
