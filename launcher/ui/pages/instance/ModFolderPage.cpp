@@ -358,7 +358,9 @@ CoreModFolderPage::CoreModFolderPage(BaseInstance* inst, std::shared_ptr<ModFold
                             m_container->refreshContainer();
                         }
                     });
-                    update->start();
+                    if (!update->isRunning()) {
+                        update->start();
+                    }
                 }
             }
         }

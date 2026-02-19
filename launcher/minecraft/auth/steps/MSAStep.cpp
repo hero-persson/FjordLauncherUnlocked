@@ -56,13 +56,14 @@ bool isSchemeHandlerRegistered()
     process.waitForFinished();
     QString output = process.readAllStandardOutput().trimmed();
 
-    return output.contains(BuildConfig.LAUNCHER_APP_BINARY_NAME);
+    return output.contains(APPLICATION->desktopFileName());
 
 #elif defined(Q_OS_WIN)
     QString regPath = QString("HKEY_CURRENT_USER\\Software\\Classes\\%1").arg(BuildConfig.LAUNCHER_APP_BINARY_NAME);
     QSettings settings(regPath, QSettings::NativeFormat);
 
-    return settings.contains("shell/open/command/.");
+    const QString registeredRunCommand = settings.value("shell/open/command/.").toString().replace("\\", "/");
+    return registeredRunCommand.contains(QCoreApplication::applicationFilePath());
 #endif
     return true;
 }
@@ -80,6 +81,33 @@ class CustomOAuthOobReplyHandler : public QOAuthOobReplyHandler {
         disconnect(APPLICATION, &Application::oauthReplyRecieved, this, &QOAuthOobReplyHandler::callbackReceived);
     }
     QString callback() const override { return BuildConfig.LAUNCHER_APP_BINARY_NAME + "://oauth/microsoft"; }
+
+   protected:
+    void networkReplyFinished(QNetworkReply* reply) override
+    {
+        if (reply->error() != QNetworkReply::NoError) {
+            qWarning() << "OAuth2 request failed:" << reply->readAll();
+        }
+
+        QOAuthOobReplyHandler::networkReplyFinished(reply);
+    }
+};
+
+class LoggingOAuthHttpServerReplyHandler final : public QOAuthHttpServerReplyHandler {
+    Q_OBJECT
+
+   public:
+    explicit LoggingOAuthHttpServerReplyHandler(QObject* parent = nullptr) : QOAuthHttpServerReplyHandler(parent) {}
+
+   protected:
+    void networkReplyFinished(QNetworkReply* reply) override
+    {
+        if (reply->error() != QNetworkReply::NoError) {
+            qWarning() << "OAuth2 request failed:" << reply->readAll();
+        }
+
+        QOAuthHttpServerReplyHandler::networkReplyFinished(reply);
+    }
 };
 
 MSAStep::MSAStep(AccountData* data, bool silent) : AuthStep(data), m_silent(silent)
@@ -88,7 +116,7 @@ MSAStep::MSAStep(AccountData* data, bool silent) : AuthStep(data), m_silent(sile
     if (QCoreApplication::applicationFilePath().startsWith("/tmp/.mount_") || APPLICATION->isPortable() || !isSchemeHandlerRegistered())
 
     {
-        auto replyHandler = new QOAuthHttpServerReplyHandler(this);
+        auto replyHandler = new LoggingOAuthHttpServerReplyHandler(this);
         replyHandler->setCallbackText(QString(R"XXX(
     <noscript>
       <meta http-equiv="Refresh" content="0; URL=%1" />
@@ -123,7 +151,7 @@ MSAStep::MSAStep(AccountData* data, bool silent) : AuthStep(data), m_silent(sile
         m_data->msaToken.extra = m_oauth2.extraTokens();
         m_data->msaToken.refresh_token = m_oauth2.refreshToken();
         m_data->msaToken.token = m_oauth2.token();
-        emit finished(AccountTaskState::STATE_WORKING, tr("Got "));
+        emit finished(AccountTaskState::STATE_WORKING, tr("Got MSA token"));
     });
     connect(&m_oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, this, &MSAStep::authorizeWithBrowser);
     connect(&m_oauth2, &QOAuth2AuthorizationCodeFlow::requestFailed, this, [this, silent](const QAbstractOAuth2::Error err) {

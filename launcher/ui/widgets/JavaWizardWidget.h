@@ -7,6 +7,7 @@
 #include <QCheckBox>
 #include <QIcon>
 
+class QCheckBox;
 class QLineEdit;
 class VersionSelectWidget;
 class QSpinBox;

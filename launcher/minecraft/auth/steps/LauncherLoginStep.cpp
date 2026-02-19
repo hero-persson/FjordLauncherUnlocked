@@ -14,7 +14,7 @@ LauncherLoginStep::LauncherLoginStep(AccountData* data) : AuthStep(data) {}
 
 QString LauncherLoginStep::describe()
 {
-    return tr("Accessing Mojang services.");
+    return tr("Fetching Minecraft access token");
 }
 
 void LauncherLoginStep::perform()
@@ -39,6 +39,7 @@ void LauncherLoginStep::perform()
     m_response.reset(new QByteArray());
     m_request = Net::Upload::makeByteArray(url, m_response, requestBody.toUtf8());
     m_request->addHeaderProxy(new Net::RawHeaderProxy(headers));
+    m_request->enableAutoRetry(true);
 
     m_task.reset(new NetJob("LauncherLoginStep", APPLICATION->network()));
     m_task->setAskRetry(false);
@@ -69,5 +70,5 @@ void LauncherLoginStep::onRequestDone()
         emit finished(AccountTaskState::STATE_FAILED_SOFT, tr("Failed to parse the Minecraft access token response."));
         return;
     }
-    emit finished(AccountTaskState::STATE_WORKING, tr(""));
+    emit finished(AccountTaskState::STATE_WORKING, tr("Got Minecraft access token"));
 }

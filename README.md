@@ -25,6 +25,7 @@ scoop install hero-persson/fjordlauncher
 
 You can get installers or portable builds from the [releases section](https://github.com/hero-persson/FjordLauncherUnlocked/releases/latest), MSVC builds are recommended over MinGW builds, but there's no real difference.
 
+<<<<<<< HEAD
 ### macOS
 
 #### [Homebrew](https://brew.sh) (recommended)
@@ -42,6 +43,7 @@ There are builds for macOS in the [releases section](https://github.com/hero-per
 
 ```Shell
 flatpak remote-add --user --if-not-exists hero-persson https://hero-persson.github.io/unmojang-flatpak/index.flatpakrepo
+flatpak install org.kde.Platform/x86_64/6.10
 flatpak install org.unmojang.FjordLauncher
 ```
 

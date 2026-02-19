@@ -88,7 +88,7 @@ void Technic::SolderPackInstallTask::fileListSucceeded()
     QJsonParseError parse_error{};
     QJsonDocument doc = QJsonDocument::fromJson(*m_response, &parse_error);
     if (parse_error.error != QJsonParseError::NoError) {
-        qWarning() << "Error while parsing JSON response from Solder at " << parse_error.offset << " reason: " << parse_error.errorString();
+        qWarning() << "Error while parsing JSON response from Solder at" << parse_error.offset << "reason:" << parse_error.errorString();
         qWarning() << *m_response;
         return;
     }
@@ -98,8 +98,8 @@ void Technic::SolderPackInstallTask::fileListSucceeded()
     try {
         TechnicSolder::loadPackBuild(build, obj);
     } catch (const JSONValidationError& e) {
-        emitFailed(tr("Could not understand pack manifest:\n") + e.cause());
         m_filesNetJob.reset();
+        emitFailed(tr("Could not understand pack manifest:\n") + e.cause());
         return;
     }
 
@@ -159,8 +159,8 @@ void Technic::SolderPackInstallTask::downloadSucceeded()
 void Technic::SolderPackInstallTask::downloadFailed(QString reason)
 {
     m_abortable = false;
-    emitFailed(reason);
     m_filesNetJob.reset();
+    emitFailed(reason);
 }
 
 void Technic::SolderPackInstallTask::downloadProgressChanged(qint64 current, qint64 total)
@@ -171,8 +171,8 @@ void Technic::SolderPackInstallTask::downloadProgressChanged(qint64 current, qin
 
 void Technic::SolderPackInstallTask::downloadAborted()
 {
-    emitAborted();
     m_filesNetJob.reset();
+    emitAborted();
 }
 
 void Technic::SolderPackInstallTask::extractFinished()

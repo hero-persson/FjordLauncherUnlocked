@@ -97,10 +97,10 @@ void PackFetchTask::fetchPrivate(const QStringList& toFetch)
         });
 
         connect(job, &NetJob::aborted, this, [this, job, data] {
-            emit aborted();
             job->deleteLater();
-
             data->clear();
+
+            emit aborted();
         });
 
         job->start();
@@ -173,7 +173,7 @@ bool PackFetchTask::parseAndAddPacks(QByteArray& data, PackType packType, Modpac
                 qWarning() << "Added current version to oldVersions because oldVersions was empty! (" + modpack.name + ")";
             } else {
                 modpack.broken = true;
-                qWarning() << "Broken pack:" << modpack.name << " => No valid version!";
+                qWarning() << "Broken pack:" << modpack.name << "=> No valid version!";
             }
         }
 

@@ -70,6 +70,7 @@ void MSADeviceCodeStep::perform()
     m_response.reset(new QByteArray());
     m_request = Net::Upload::makeByteArray(url, m_response, payload);
     m_request->addHeaderProxy(new Net::RawHeaderProxy(headers));
+    m_request->enableAutoRetry(true);
 
     m_task.reset(new NetJob("MSADeviceCodeStep", APPLICATION->network()));
     m_task->setAskRetry(false);
@@ -121,12 +122,13 @@ void MSADeviceCodeStep::deviceAuthorizationFinished()
         return;
     }
     if (!m_request->wasSuccessful() || m_request->error() != QNetworkReply::NoError) {
+        qWarning() << "Device authorization failed:" << *m_response;
         emit finished(AccountTaskState::STATE_FAILED_HARD, tr("Failed to retrieve device authorization"));
-        qDebug() << *m_response;
         return;
     }
 
     if (rsp.device_code.isEmpty() || rsp.user_code.isEmpty() || rsp.verification_uri.isEmpty() || rsp.expires_in == 0) {
+        qWarning() << "Device authorization failed: required fields missing";
         emit finished(AccountTaskState::STATE_FAILED_HARD, tr("Device authorization failed: required fields missing"));
         return;
     }
@@ -274,5 +276,5 @@ void MSADeviceCodeStep::authenticationFinished()
     m_data->msaToken.extra = rsp.extra;
     m_data->msaToken.refresh_token = rsp.refresh_token;
     m_data->msaToken.token = rsp.access_token;
-    emit finished(AccountTaskState::STATE_WORKING, tr("Got"));
+    emit finished(AccountTaskState::STATE_WORKING, tr("Got MSA token"));
 }

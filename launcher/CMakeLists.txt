@@ -106,6 +106,9 @@ set(CORE_SOURCES
 
     MTPixmapCache.h
 
+    # Assertion helper
+    AssertHelpers.h
+
     # Manifest.mf parser
     Manifest.h
     Manifest.cpp
@@ -276,6 +279,8 @@ set(MINECRAFT_SOURCES
     minecraft/launch/ClaimAccount.h
     minecraft/launch/CreateGameFolders.cpp
     minecraft/launch/CreateGameFolders.h
+    minecraft/launch/EnsureOfflineLibraries.cpp
+    minecraft/launch/EnsureOfflineLibraries.h
     minecraft/launch/ModMinecraftJar.cpp
     minecraft/launch/ModMinecraftJar.h
     minecraft/launch/ExtractNatives.cpp
@@ -1344,11 +1349,14 @@ include(CompilerWarnings)
 
 ######## Precompiled Headers ###########
 
-set(PRECOMPILED_HEADERS
-    include/base.pch.hpp
-    include/qtcore.pch.hpp
-    include/qtgui.pch.hpp
-)
+if(${Launcher_USE_PCH})
+    message(STATUS "Using precompiled headers for applicable launcher targets")
+    set(PRECOMPILED_HEADERS
+        include/base.pch.hpp
+        include/qtcore.pch.hpp
+        include/qtgui.pch.hpp
+    )
+endif()
 
 ####### Targets ########
 
@@ -1360,7 +1368,11 @@ set_project_warnings(Launcher_logic
     "${Launcher_GCC_WARNINGS}")
 target_include_directories(Launcher_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(Launcher_logic PUBLIC LAUNCHER_APPLICATION)
-target_precompile_headers(Launcher_logic PRIVATE ${PRECOMPILED_HEADERS})
+
+if(${Launcher_USE_PCH})
+    target_precompile_headers(Launcher_logic PRIVATE ${PRECOMPILED_HEADERS})
+endif()
+
 target_link_libraries(Launcher_logic
     systeminfo
     Launcher_murmur2
@@ -1442,7 +1454,11 @@ endif()
 target_link_libraries(Launcher_logic)
 
 add_executable(${Launcher_Name} MACOSX_BUNDLE WIN32 main.cpp ${LAUNCHER_RCS})
-target_precompile_headers(${Launcher_Name} REUSE_FROM Launcher_logic)
+
+if(${Launcher_USE_PCH})
+    target_precompile_headers(${Launcher_Name} REUSE_FROM Launcher_logic)
+endif()
+
 target_link_libraries(${Launcher_Name} Launcher_logic)
 
 if(DEFINED Launcher_APP_BINARY_NAME)
@@ -1474,7 +1490,11 @@ if(Launcher_BUILD_UPDATER)
     # Updater
     add_library(prism_updater_logic STATIC ${PRISMUPDATER_SOURCES} ${TASKS_SOURCES} ${PRISMUPDATER_UI})
     target_include_directories(prism_updater_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-    target_precompile_headers(prism_updater_logic PRIVATE ${PRECOMPILED_HEADERS})
+
+    if(${Launcher_USE_PCH})
+        target_precompile_headers(prism_updater_logic PRIVATE ${PRECOMPILED_HEADERS})
+    endif()
+
     target_link_libraries(prism_updater_logic
         ${ZLIB_LIBRARIES}
         systeminfo
@@ -1494,7 +1514,10 @@ if(Launcher_BUILD_UPDATER)
     add_executable("${Launcher_Name}_updater" WIN32 updater/prismupdater/updater_main.cpp)
     target_sources("${Launcher_Name}_updater" PRIVATE updater/prismupdater/updater.exe.manifest)
     target_link_libraries("${Launcher_Name}_updater" prism_updater_logic)
-    target_precompile_headers("${Launcher_Name}_updater" REUSE_FROM prism_updater_logic)
+
+    if(${Launcher_USE_PCH})
+        target_precompile_headers("${Launcher_Name}_updater" REUSE_FROM prism_updater_logic)
+    endif()
 
     if(DEFINED Launcher_APP_BINARY_NAME)
         set_target_properties("${Launcher_Name}_updater" PROPERTIES OUTPUT_NAME "${Launcher_APP_BINARY_NAME}_updater")
@@ -1525,7 +1548,10 @@ if(WIN32 OR (DEFINED Launcher_BUILD_FILELINKER AND Launcher_BUILD_FILELINKER))
     "${Launcher_GCC_WARNINGS}")
 
     target_include_directories(filelink_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-    target_precompile_headers(filelink_logic PRIVATE ${PRECOMPILED_HEADERS})
+
+    if(${Launcher_USE_PCH})
+        target_precompile_headers(filelink_logic PRIVATE ${PRECOMPILED_HEADERS})
+    endif()
 
     target_link_libraries(filelink_logic
         systeminfo
@@ -1538,9 +1564,11 @@ if(WIN32 OR (DEFINED Launcher_BUILD_FILELINKER AND Launcher_BUILD_FILELINKER))
     )
 
     add_executable("${Launcher_Name}_filelink" WIN32 filelink/filelink_main.cpp)
-
     target_sources("${Launcher_Name}_filelink" PRIVATE filelink/filelink.exe.manifest)
-    target_precompile_headers("${Launcher_Name}_filelink" REUSE_FROM filelink_logic)
+
+    if(${Launcher_USE_PCH})
+        target_precompile_headers("${Launcher_Name}_filelink" REUSE_FROM filelink_logic)
+    endif()
 
     # HACK: Fix manifest issues with Ninja in release mode (and only release mode) and MSVC
     # I have no idea why this works or why it's needed. UPDATE THIS IF YOU EDIT THE MANIFEST!!! -@getchoo
@@ -1627,6 +1655,49 @@ if(WIN32 OR (UNIX AND APPLE))
         SCRIPT ${QT_DEPLOY_SCRIPT}
         COMPONENT bundle
     )
+    # FIXME: remove this crap once we stop using msys2
+    if(MINGW)
+        # i've not found a solution better than injecting the config vars like this...
+        # with install(CODE" for everything everything just breaks
+        install(CODE "
+            set(QT_PLUGINS_DIR \"${QT_PLUGINS_DIR}\")
+            set(QT_LIBS_DIR \"${QT_LIBS_DIR}\")
+            set(QT_LIBEXECS_DIR \"${QT_LIBEXECS_DIR}\")
+            set(CMAKE_SYSTEM_LIBRARY_PATH \"${CMAKE_SYSTEM_LIBRARY_PATH}\")
+            set(CMAKE_INSTALL_PREFIX \"${CMAKE_INSTALL_PREFIX}\")
+            "
+            COMPONENT bundle)
+
+        install(CODE [[
+            file(GLOB QT_IMAGEFORMAT_DLLS "${QT_PLUGINS_DIR}/imageformats/*.dll")
+            set(CMAKE_GET_RUNTIME_DEPENDENCIES_TOOL objdump)
+            file(GET_RUNTIME_DEPENDENCIES
+                RESOLVED_DEPENDENCIES_VAR imageformatdeps
+                LIBRARIES ${QT_IMAGEFORMAT_DLLS}
+                DIRECTORIES
+                    ${CMAKE_SYSTEM_LIBRARY_PATH}
+                    ${QT_PLUGINS_DIR}
+                    ${QT_LIBS_DIR}
+                    ${QT_LIBEXECS_DIR}
+                PRE_EXCLUDE_REGEXES
+                    "^(api-ms-win|ext-ms)-.*\\.dll$"
+                    # FIXME: Why aren't these caught by the below regex???
+                    "^azure.*\\.dll$"
+                    "^vcruntime.*\\.dll$"
+                POST_EXCLUDE_REGEXES
+                    "system32"
+            )
+            foreach(_lib ${imageformatdeps})
+                file(INSTALL
+                    DESTINATION ${CMAKE_INSTALL_PREFIX}
+                    TYPE SHARED_LIBRARY
+                    FOLLOW_SYMLINK_CHAIN
+                    FILES ${_lib}
+                )
+            endforeach()
+        ]]
+        COMPONENT bundle)
+    endif()
 
     # Add qt.conf - this makes Qt stop looking for things outside the bundle
     install(
@@ -1639,4 +1710,16 @@ if(WIN32 OR (UNIX AND APPLE))
         DESTINATION ${CMAKE_INSTALL_PREFIX}/${RESOURCES_DEST_DIR}
         COMPONENT bundle
     )
+endif()
+
+find_program(CLANG_FORMAT clang-format OPTIONAL)
+if(CLANG_FORMAT)
+    message(STATUS "Creating clang-format target")
+    add_custom_target(
+        clang-format
+        COMMAND ${CLANG_FORMAT} -i --style=file:${CMAKE_SOURCE_DIR}/.clang-format ${LOGIC_SOURCES} ${LAUNCHER_SOURCES} ${PRISMUPDATER_SOURCES} ${LINKEXE_SOURCES} ${PRECOMPILED_HEADERS}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    )
+else()
+    message(WARNING "Unable to find `clang-format`. Not creating custom target")
 endif()

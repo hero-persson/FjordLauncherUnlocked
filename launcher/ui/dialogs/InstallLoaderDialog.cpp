@@ -92,14 +92,18 @@ InstallLoaderDialog::InstallLoaderDialog(std::shared_ptr<PackProfile> profile, c
     : QDialog(parent), profile(std::move(profile)), container(new PageContainer(this, QString(), this)), buttons(new QDialogButtonBox(this))
 {
     auto layout = new QVBoxLayout(this);
+    // small margins look ugly on macOS on modal windows
+    #ifndef Q_OS_MACOS
     layout->setContentsMargins(0, 0, 0, 0);
-
+    #endif
     container->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     layout->addWidget(container);
 
     auto buttonLayout = new QHBoxLayout(this);
+    // small margins look ugly on macOS on modal windows
+    #ifndef Q_OS_MACOS
     buttonLayout->setContentsMargins(0, 0, 6, 6);
-
+    #endif
     auto refreshButton = new QPushButton(tr("&Refresh"), this);
     connect(refreshButton, &QPushButton::clicked, this, [this] { pageCast(container->selectedPage())->loadList(); });
     buttonLayout->addWidget(refreshButton);
