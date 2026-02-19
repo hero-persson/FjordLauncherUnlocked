@@ -25,7 +25,6 @@ scoop install hero-persson/fjordlauncher
 
 You can get installers or portable builds from the [releases section](https://github.com/hero-persson/FjordLauncherUnlocked/releases/latest), MSVC builds are recommended over MinGW builds, but there's no real difference.
 
-<<<<<<< HEAD
 ### macOS
 
 #### [Homebrew](https://brew.sh) (recommended)
