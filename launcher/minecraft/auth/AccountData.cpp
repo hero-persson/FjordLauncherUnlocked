@@ -400,51 +400,46 @@ QString AccountData::authServerUrl() const
 {
     if (usesCustomApiServers()) {
         return customAuthServerUrl;
-    } else {
-        return BuildConfig.MOJANG_AUTH_BASE;
     }
+    return BuildConfig.MOJANG_AUTH_BASE;
 }
 
 QString AccountData::accountServerUrl() const
 {
     if (usesCustomApiServers()) {
         return customAccountServerUrl;
-    } else {
-        return BuildConfig.MOJANG_ACCOUNT_BASE;
     }
+    return BuildConfig.MOJANG_ACCOUNT_BASE;
 }
 
 QString AccountData::sessionServerUrl() const
 {
     if (usesCustomApiServers()) {
         return customSessionServerUrl;
-    } else {
-        return BuildConfig.MOJANG_SESSION_BASE;
     }
+    return BuildConfig.MOJANG_SESSION_BASE;
 }
 
 QString AccountData::authlibInjectorUrl() const
 {
     if (usesCustomApiServers()) {
         return customAuthlibInjectorUrl;
-    } else {
-        return QString();
     }
+    return QString();
 }
 
 QString AccountData::servicesServerUrl() const
 {
     if (usesCustomApiServers()) {
         return customServicesServerUrl;
-    } else {
-        return BuildConfig.MOJANG_SERVICES_BASE;
     }
+    return BuildConfig.MOJANG_SERVICES_BASE;
 }
 
 QString AccountData::userName() const
 {
     if (type == AccountType::MSA) {
-        return QString();
+        return {};
     }
     return yggdrasilToken.extra["userName"].toString();
 }
@@ -462,7 +457,7 @@ QString AccountData::clientToken() const
     return yggdrasilToken.extra["clientToken"].toString();
 }
 
-void AccountData::setClientToken(QString clientToken)
+void AccountData::setClientToken(const QString & clientToken)
 {
     if (type != AccountType::AuthlibInjector) {
         return;

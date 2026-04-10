@@ -8,8 +8,6 @@ Fjord Launcher Unlocked is a **fork** of Fjord Launcher, which is a fork of Pris
 
 - [Support for alternative auth servers](doc/alternative-auth-servers.md)
 
-- Ability to download FTB modpacks from within the launcher
-
 ## Installation
 
 ### Windows
