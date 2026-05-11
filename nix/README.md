@@ -22,7 +22,7 @@ Example (NixOS):
 
 ### Installing the package directly
 
-After adding `github:unmojang/FjordLauncher` to your flake inputs, you can access the flake's `packages` output.
+After adding `github:hero-persson/FjordLauncherUnlocked` to your flake inputs, you can access the flake's `packages` output.
 
 Example:
 
@@ -32,7 +32,7 @@ Example:
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     fjordlauncher = {
-      url = "github:unmojang/FjordLauncher";
+      url = "github:hero-persson/FjordLauncherUnlocked";
 
       # Optional: Override the nixpkgs input of fjordlauncher to use the same revision as the rest of your flake
       # Note that this may break the reproducibility mentioned above, and you might not be able to access the binary cache
@@ -77,7 +77,7 @@ Example:
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     fjordlauncher = {
-      url = "github:unmojang/FjordLauncher";
+      url = "github:hero-persson/FjordLauncherUnlocked";
 
       # Optional: Override the nixpkgs input of fjordlauncher to use the same revision as the rest of your flake
       # Note that this may break the reproducibility mentioned above, and you might not be able to access the binary cache
@@ -114,11 +114,11 @@ You can simply call the default package of this flake.
 Example:
 
 ```shell
-nix run github:unmojang/FjordLauncher
+nix run github:hero-persson/FjordLauncherUnlocked
 
-nix shell github:unmojang/FjordLauncher
+nix shell github:hero-persson/FjordLauncherUnlocked
 
-nix profile install github:unmojang/FjordLauncher
+nix profile install github:hero-persson/FjordLauncherUnlocked
 ```
 
 ## Installing a development release (without flakes)
@@ -184,7 +184,7 @@ You can add this repository as a channel and install its packages that way.
 Example:
 
 ```shell
-nix-channel --add https://github.com/unmojang/FjordLauncher/archive/develop.tar.gz fjordlauncher
+nix-channel --add https://github.com/hero-persson/FjordLauncherUnlocked/archive/develop.tar.gz fjordlauncher
 
 nix-channel --update fjordlauncher
 
