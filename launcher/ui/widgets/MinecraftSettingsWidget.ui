@@ -786,6 +786,61 @@ It is most likely you will need to change the path - please refer to the mod's w
             </widget>
            </item>
            <item>
+            <widget class="QGroupBox" name="yggdrasilAgentGroupBox">
+             <property name="title">
+              <string>&amp;Yggdrasil Agent</string>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_yggdrasil">
+              <item>
+               <widget class="QCheckBox" name="yggdrasilAgentAutoUpdateCheck">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Automatically check for and apply upgrades to the Yggdrasil agent on launch.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Automatic updates</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="yggdrasilAgentDebugCheck">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable debug logging for the Yggdrasil agent.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Debug mode</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="yggdrasilAgentAntiFeatureCheck">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls whether server blocklist, telemetry, and other Minecraft restrictions are enforced.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Minecraft anti-features</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="lokiDisableURLFactoryCheck">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disables Loki&apos;s URL factory. This reduces coverage but can prevent crashes in certain situations. Only enable this if you are experiencing a URL factory-related crash.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Disable URL factory (Loki only)</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
             <spacer name="verticalSpacer">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -858,32 +913,71 @@ It is most likely you will need to change the path - please refer to the mod's w
   <tabstop>openGlobalSettingsButton</tabstop>
   <tabstop>settingsTabs</tabstop>
   <tabstop>scrollArea</tabstop>
+
+  <!-- game window settings -->
+  <tabstop>windowSizeGroupBox</tabstop>
   <tabstop>maximizedCheckBox</tabstop>
-  <tabstop>windowHeightSpinBox</tabstop>
   <tabstop>windowWidthSpinBox</tabstop>
+  <tabstop>windowHeightSpinBox</tabstop>
   <tabstop>closeAfterLaunchCheck</tabstop>
   <tabstop>quitAfterGameStopCheck</tabstop>
+
+  <!-- console settings -->
+  <tabstop>consoleSettingsBox</tabstop>
   <tabstop>showConsoleCheck</tabstop>
   <tabstop>showConsoleErrorCheck</tabstop>
   <tabstop>autoCloseConsoleCheck</tabstop>
+
+  <!-- global data packs -->
+  <tabstop>globalDataPacksGroupBox</tabstop>
+  <tabstop>dataPacksPathEdit</tabstop>
+  <tabstop>dataPacksPathBrowse</tabstop>
+
+  <!-- game time -->-->
+  <tabstop>gameTimeGroupBox</tabstop>
   <tabstop>showGameTime</tabstop>
   <tabstop>recordGameTime</tabstop>
   <tabstop>showGlobalGameTime</tabstop>
   <tabstop>showGameTimeWithoutDays</tabstop>
+
+  <!-- default account -->
   <tabstop>instanceAccountGroupBox</tabstop>
   <tabstop>instanceAccountSelector</tabstop>
+
+  <!-- auto join -->
   <tabstop>serverJoinGroupBox</tabstop>
   <tabstop>serverJoinAddressButton</tabstop>
   <tabstop>serverJoinAddress</tabstop>
   <tabstop>worldJoinButton</tabstop>
   <tabstop>worldsCb</tabstop>
+
+  <!-- mod loaders-->
+  <tabstop>loaderGroup</tabstop>
+  <tabstop>neoForge</tabstop>
+  <tabstop>forge</tabstop>
+  <tabstop>fabric</tabstop>
+  <tabstop>quilt</tabstop>
+  <tabstop>liteLoader</tabstop>
+  <tabstop>babric</tabstop>
+  <tabstop>btaBabric</tabstop>
+  <tabstop>legacyFabric</tabstop>
+  <tabstop>ornithe</tabstop>
+  <tabstop>rift</tabstop>
+
   <tabstop>javaScrollArea</tabstop>
   <tabstop>scrollArea_2</tabstop>
+
+  <!-- legacy tweaks -->
+  <tabstop>legacySettingsGroupBox</tabstop>
   <tabstop>onlineFixes</tabstop>
+
+  <!-- native library workarounds -->
+  <tabstop>nativeWorkaroundsGroupBox</tabstop>
   <tabstop>useNativeGLFWCheck</tabstop>
   <tabstop>lineEditGLFWPath</tabstop>
   <tabstop>useNativeOpenALCheck</tabstop>
   <tabstop>lineEditOpenALPath</tabstop>
+  
   <tabstop>enableFeralGamemodeCheck</tabstop>
   <tabstop>enableMangoHud</tabstop>
   <tabstop>useDiscreteGpuCheck</tabstop>

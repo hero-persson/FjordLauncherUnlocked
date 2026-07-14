@@ -40,8 +40,9 @@
 #include "launch/steps/PrintServers.h"
 #include "minecraft/auth/AccountData.h"
 #include "minecraft/auth/AccountList.h"
-#include "settings/MissingAuthlibInjectorBehavior.h"
+#include "settings/MissingYggdrasilAgentBehavior.h"
 
+#include "net/NetUtils.h"
 #include "ui/InstanceWindow.h"
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/MSALoginDialog.h"
@@ -113,7 +114,7 @@ void LaunchController::decideAccount()
         }
     }
 
-    if (!m_accountToUse) {
+    if (!m_accountToUse && accounts->anyAccountIsValid()) {
         // If no default account is set, ask the user which one to use.
         ProfileSelectDialog selectDialog(tr("Which account would you like to use?"), ProfileSelectDialog::GlobalDefaultCheckbox,
                                          m_parentWidget);
@@ -135,14 +136,6 @@ LaunchDecision LaunchController::decideLaunchMode()
     if (!m_accountToUse || m_wantedLaunchMode == LaunchMode::Demo) {
         m_actualLaunchMode = LaunchMode::Demo;
         return LaunchDecision::Continue;
-    }
-
-    if (m_wantedLaunchMode == LaunchMode::Normal) {
-        if (m_accountToUse->shouldRefresh() || m_accountToUse->accountState() == AccountState::Offline) {
-            // Force account refresh on the account used to launch the instance updating the AccountState
-            // only on first try and if it is not meant to be offline
-            m_accountToUse->refresh();
-        }
     }
 
     const auto* accounts = APPLICATION->accounts();
@@ -167,7 +160,9 @@ LaunchDecision LaunchController::decideLaunchMode()
     }
 
     auto state = accountToCheck->accountState();
-    if (state == AccountState::Unchecked || state == AccountState::Errored) {
+    const bool needsRefresh =
+        m_wantedLaunchMode == LaunchMode::Normal && (state == AccountState::Offline || accountToCheck->shouldRefresh());
+    if (state == AccountState::Unchecked || state == AccountState::Errored || needsRefresh) {
         accountToCheck->refresh();
         state = AccountState::Working;
     }
@@ -235,13 +230,14 @@ bool LaunchController::askPlayDemo() const
     return box.clickedButton() == demoButton;
 }
 
-QString LaunchController::askOfflineName(const QString& playerName, bool* ok) const
+QString LaunchController::askOfflineName(const QString& playerName, bool* ok)
 {
     if (ok != nullptr) {
         *ok = false;
     }
 
-    QString message;
+    QString title, message;
+    title = tr("Player name");
     switch (m_actualLaunchMode) {
         case LaunchMode::Normal:
             Q_ASSERT(false);
@@ -251,7 +247,14 @@ QString LaunchController::askOfflineName(const QString& playerName, bool* ok) co
             break;
         case LaunchMode::Offline:
             if (m_wantedLaunchMode == LaunchMode::Normal) {
-                message = tr("You are not connected to the Internet, launching in offline mode\n\n");
+                auto netErr = m_accountToUse->accountData()->networkError;
+                if (Net::isServerError(netErr)) {
+                    title = tr("Auth servers offline");
+                    message = tr("The Minecraft authentication servers are currently unavailable, launching in offline mode.\n\n");
+                } else {
+                    title = tr("No internet connection");
+                    message = tr("You are not connected to the Internet, launching in offline mode.\n\n");
+                }
             }
             message += tr("Choose your offline mode player name");
             break;
@@ -261,7 +264,7 @@ QString LaunchController::askOfflineName(const QString& playerName, bool* ok) co
     QString usedname = lastOfflinePlayerName.isEmpty() ? playerName : lastOfflinePlayerName;
 
     ChooseOfflineNameDialog dialog(message, m_parentWidget);
-    dialog.setWindowTitle(tr("Player name"));
+    dialog.setWindowTitle(title);
     dialog.setUsername(usedname);
     if (dialog.exec() != QDialog::Accepted) {
         return {};
@@ -343,11 +346,11 @@ bool LaunchController::reauthenticateAccount(const MinecraftAccountPtr& account,
     if (button == QMessageBox::StandardButton::Yes) {
         auto* accounts = APPLICATION->accounts();
         const bool isDefault = accounts->defaultAccount() == account;
-        accounts->removeAccount(accounts->index(accounts->findAccountByProfileId(account->profileId())));
         if (account->accountType() == AccountType::MSA) {
             auto newAccount = MSALoginDialog::newAccount(m_parentWidget);
 
             if (newAccount != nullptr) {
+                accounts->removeAccount(accounts->index(accounts->findAccountByProfileId(account->profileId())));
                 accounts->addAccount(newAccount);
 
                 if (isDefault) {
@@ -378,61 +381,146 @@ void LaunchController::launchInstance()
     }
 
     auto* inst = dynamic_cast<MinecraftInstance*>(m_instance);
+
     if (m_accountToUse->usesCustomApiServers() && !inst->shouldApplyOnlineFixes()) {
-        bool authlibInjectorInstalled = false;
-        const auto& agents = inst->getPackProfile()->getProfile()->getAgents();
-        for (const auto& agent : agents) {
-            if (agent.library->artifactPrefix() == "moe.yushi:authlibinjector") {
-                authlibInjectorInstalled = true;
+        auto isAgentInstalled = [&](const QString& agentPrefix) -> bool {
+            const auto& agents = inst->getPackProfile()->getProfile()->getAgents();
+            for (const auto& agent : agents) {
+                if (agent.library->artifactPrefix() == agentPrefix) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        if (inst->settings()->get("YggdrasilAgentAutoUpdate").toBool()) {
+            struct AgentInfo {
+                const char* prefix;
+                const char* uid;
+            };
+            for (const auto& agent : { AgentInfo{ "org.unmojang:Loki", "org.unmojang.loki" },
+                                       AgentInfo{ "moe.yushi:authlibinjector", "moe.yushi.authlibinjector" } }) {
+                if (inst->getPackProfile()->getComponentVersion(agent.uid).isNull())
+                    continue;
+
+                try {
+                    auto vlist = APPLICATION->metadataIndex()->get(agent.uid);
+                    if (!vlist)
+                        break;
+
+                    ProgressDialog loadDialog(m_parentWidget);
+                    loadDialog.setSkipButton(true, tr("Skip"));
+                    auto loadTask = vlist->getLoadTask();
+                    loadDialog.execWithTask(loadTask.get());
+
+                    if (!loadTask->wasSuccessful())
+                        break;
+
+                    auto recommended = vlist->getRecommended();
+                    if (!recommended)
+                        break;
+
+                    auto current = inst->getPackProfile()->getComponentVersion(agent.uid);
+                    if (recommended->descriptor() != current)
+                        inst->getPackProfile()->setComponentVersion(agent.uid, recommended->descriptor());
+                } catch (const Exception&) {
+                }
+                break;
             }
         }
 
-        if (!authlibInjectorInstalled) {
-            // Account uses custom API servers, but authlib-injector is missing
+        if (!isAgentInstalled("org.unmojang:Loki") && !isAgentInstalled("moe.yushi:authlibinjector")) {
+            bool authlibSupported = false;
+            auto mcVersionStr = inst->getPackProfile()->getComponentVersion("net.minecraft");
+            if (!mcVersionStr.isEmpty()) {
+                auto meta = APPLICATION->metadataIndex()->get("net.minecraft", mcVersionStr);
+                if (meta && meta->rawTime() != 0) {
+                    authlibSupported = meta->time() >= QDateTime(QDate(2014, 5, 1), QTime(), Qt::UTC);
+                }
+            }
 
-            int globalMissingBehavior = APPLICATION->settings()->get("MissingAuthlibInjectorBehavior").toInt();
-            int missingBehavior = globalMissingBehavior;
+            int behavior = APPLICATION->settings()->get("MissingYggdrasilAgentBehavior").toInt();
 
-            if (globalMissingBehavior == MissingAuthlibInjectorBehavior::Ask) {
+            if (behavior == (int)MissingYggdrasilAgentBehavior::InstallAuthlibInjector && !authlibSupported)
+                behavior = (int)MissingYggdrasilAgentBehavior::Ask;
+
+            if (behavior == (int)MissingYggdrasilAgentBehavior::Ask) {
                 QMessageBox msgBox{ m_parentWidget };
-                msgBox.setWindowTitle(tr("Missing authlib-injector"));
-                msgBox.setText(tr("authlib-injector is not installed."));
-                msgBox.setInformativeText(
-                    tr("You are logging in using an account that uses custom API servers, but authlib-injector "
-                       "is not installed on this instance.\n\n"
-                       "Would you like to install authlib-injector now?"));
-                msgBox.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ignore | QMessageBox::Yes);
-                msgBox.setDefaultButton(QMessageBox::Yes);
+                msgBox.setWindowTitle(tr("Missing Yggdrasil agent"));
+                msgBox.setText(tr("No Yggdrasil agent is installed on this instance."));
+                msgBox.setInformativeText(authlibSupported
+                                              ? tr("You are logging in with an account that uses custom API servers, but no Yggdrasil "
+                                                   "agent is installed on this instance.\n\n"
+                                                   "If you are unsure which to choose, authlib-injector is the recommended choice.")
+                                              : tr("You are logging in with an account that uses custom API servers, but no Yggdrasil "
+                                                   "agent is installed on this instance."));
                 msgBox.setModal(true);
 
-                auto* checkBox = new QCheckBox("Always do the same for all instances without asking", m_parentWidget);
+                // Use ActionRole for all buttons so platform style doesn't reorder them by role
+                // (e.g. AcceptRole-first on Windows/GNOME). Within one role, insertion order is preserved.
+                auto* cancelBtn = msgBox.addButton(tr("Cancel"), QMessageBox::ActionRole);
+                auto* ignoreBtn = msgBox.addButton(tr("Ignore"), QMessageBox::ActionRole);
+                auto* installAuthlibBtn =
+                    authlibSupported ? msgBox.addButton(tr("Install authlib-injector"), QMessageBox::ActionRole) : nullptr;
+                auto* installLokiBtn = msgBox.addButton(tr("Install Loki"), QMessageBox::ActionRole);
+
+                msgBox.setDefaultButton(installAuthlibBtn);
+                msgBox.setEscapeButton(cancelBtn);
+
+                auto* checkBox = new QCheckBox(tr("Always do the same for all instances without asking"), m_parentWidget);
                 checkBox->setChecked(false);
-
                 msgBox.setCheckBox(checkBox);
-                const auto& result = msgBox.exec();
+                msgBox.exec();
 
-                switch (result) {
-                    case QMessageBox::Ignore: {
-                        missingBehavior = MissingAuthlibInjectorBehavior::Ignore;
-                    } break;
-                    case QMessageBox::Yes: {
-                        missingBehavior = MissingAuthlibInjectorBehavior::Install;
-                    } break;
-                    default: {
-                        return;
-                    } break;
+                auto* clicked = msgBox.clickedButton();
+                if (clicked == installLokiBtn) {
+                    behavior = (int)MissingYggdrasilAgentBehavior::InstallLoki;
+                } else if (installAuthlibBtn && clicked == installAuthlibBtn) {
+                    behavior = (int)MissingYggdrasilAgentBehavior::InstallAuthlibInjector;
+                } else if (clicked == ignoreBtn) {
+                    behavior = (int)MissingYggdrasilAgentBehavior::Ignore;
+                } else {
+                    emitAborted();
+                    return;
                 }
 
                 if (checkBox->isChecked()) {
-                    globalMissingBehavior = missingBehavior;
-                    APPLICATION->settings()->set("MissingAuthlibInjectorBehavior", globalMissingBehavior);
+                    APPLICATION->settings()->set("MissingYggdrasilAgentBehavior", behavior);
                 }
-            } else {
-                missingBehavior = globalMissingBehavior;
             }
 
-            if (missingBehavior == MissingAuthlibInjectorBehavior::Install) {
-                // Install recommended authlib-injector version
+            if (behavior == (int)MissingYggdrasilAgentBehavior::InstallLoki) {
+                try {
+                    auto vlist = APPLICATION->metadataIndex()->get("org.unmojang.loki");
+                    if (!vlist) {
+                        throw Exception(tr("No Loki versions available."));
+                    }
+
+                    ProgressDialog loadDialog(m_parentWidget);
+                    loadDialog.setSkipButton(true, tr("Abort"));
+                    auto loadTask = vlist->getLoadTask();
+                    loadDialog.execWithTask(loadTask.get());
+
+                    if (!loadTask->wasSuccessful()) {
+                        throw Exception(tr("Failed to load Loki versions."));
+                    }
+
+                    auto recommended = vlist->getRecommended();
+                    if (recommended == nullptr) {
+                        throw Exception(tr("No Loki versions available."));
+                    }
+
+                    inst->getPackProfile()->setComponentVersion("org.unmojang.loki", recommended->descriptor());
+                } catch (const Exception& e) {
+                    const auto& message = e.cause() + "\n\n" + tr("Launch anyway?");
+                    auto result = QMessageBox::question(m_parentWidget, tr("Failed to install Loki"), message);
+
+                    if (result == QMessageBox::No) {
+                        emitAborted();
+                        return;
+                    }
+                }
+            } else if (behavior == (int)MissingYggdrasilAgentBehavior::InstallAuthlibInjector) {
                 try {
                     auto vlist = APPLICATION->metadataIndex()->get("moe.yushi.authlibinjector");
                     if (!vlist) {

@@ -441,7 +441,7 @@ set(SETTINGS_SOURCES
     settings/Setting.h
     settings/SettingsObject.cpp
     settings/SettingsObject.h
-    settings/MissingAuthlibInjectorBehavior.h
+    settings/MissingYggdrasilAgentBehavior.h
 )
 
 set(JAVA_SOURCES
@@ -1115,6 +1115,8 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/ChooseProviderDialog.cpp
     ui/dialogs/ResourceUpdateDialog.cpp
     ui/dialogs/ResourceUpdateDialog.h
+    ui/dialogs/InstallAgentDialog.cpp
+    ui/dialogs/InstallAgentDialog.h
     ui/dialogs/InstallLoaderDialog.cpp
     ui/dialogs/InstallLoaderDialog.h
     ui/dialogs/ChooseOfflineNameDialog.cpp
@@ -1593,8 +1595,10 @@ if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     target_compile_options(Launcher_logic PRIVATE /wd4100) # C4100 - unused parameter
     target_compile_options(${Launcher_Name} PRIVATE /wd4100) # C4100 - unused parameter
 else()
-    target_compile_options(Launcher_logic PRIVATE -Wno-unused-parameter -Wno-missing-field-initializers)
-    target_compile_options(${Launcher_Name} PRIVATE -Wno-unused-parameter -Wno-missing-field-initializers)
+    # sfinae-incomplete is a new GCC warning and triggers in Qt headers
+    # no-unknown-warning-option so that compilers that don't have sfinae-incomplete don't error
+    target_compile_options(Launcher_logic PRIVATE -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unknown-warning-option -Wno-sfinae-incomplete)
+    target_compile_options(${Launcher_Name} PRIVATE -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unknown-warning-option -Wno-sfinae-incomplete)
 endif()
 
 #### The bundle mess! ####
