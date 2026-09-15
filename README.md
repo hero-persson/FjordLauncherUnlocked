@@ -38,10 +38,10 @@ There are builds for macOS in the [releases section](https://github.com/hero-per
 
 ### Flatpak
 
+Flatpaks are available for both x86\_64 and aarch64. Install using [this .flatpakref file](https://unmojang.github.io/unmojang-flatpak/org.unmojang.FjordLauncher.flatpakref) or run the following command:
+
 ```Shell
-flatpak remote-add --user --if-not-exists hero-persson https://hero-persson.github.io/unmojang-flatpak/index.flatpakrepo
-flatpak install org.kde.Platform/x86_64/6.10
-flatpak install org.unmojang.FjordLauncher
+flatpak install --user https://hero-persson.github.io/unmojang-flatpak/org.unmojang.FjordLauncher.flatpakref
 ```
 
 ### Nix
